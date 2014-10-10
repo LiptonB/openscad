@@ -102,12 +102,12 @@ module ring_loop(opening_radius, tube_radius) {
   rotate_extrude(convexity=10, $fs=0.01)
     translate([ring_radius, 0, 0])
       circle(r=tube_radius, $fs=0.01);
-  *translate([-ring_radius+center_horiz_offset, cone_overlap, 0])
+  translate([-ring_radius+center_horiz_offset, cone_overlap, 0])
     rotate([90,0,0])
-      cylinder(r1=cone_top_width, r2=cone_top_width*1.6, h=opening_radius, $fs=0.01);
-  *translate([cone_overlap, -ring_radius+center_horiz_offset, 0])
+      cylinder(r1=cone_top_width, r2=cone_top_width*1.8, h=outer_radius, $fs=0.01);
+  translate([cone_overlap, -ring_radius+center_horiz_offset, 0])
     rotate([0,-90,0])
-      cylinder(r1=cone_top_width, r2=cone_top_width*1.6, h=opening_radius, $fs=0.01);
+      cylinder(r1=cone_top_width, r2=cone_top_width*1.8, h=outer_radius, $fs=0.01);
 }
 
 // Logically, the badge holder consists of three intersecting shapes.
@@ -123,7 +123,7 @@ difference() {
     // outside shape.
     beveledcube(outside_width, outside_height, outside_depth);
 
-	translate([outside_width/2-tolerance/2, outside_height/2-tolerance/2, 0]) ring_loop(2, tolerance);
+	translate([outside_width/2, outside_height/2, 0]) ring_loop(1.5, tolerance);
   }
 
   // cut out the viewing window from the center.
