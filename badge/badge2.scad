@@ -8,25 +8,26 @@ badge_depth = 2.5;  // mm. thickness of badge.
 tolerance = 1.5; // mm.
 
 margin = 2; // mm
-slide_length = 5; // mm
+slide_length = 0; // mm
+extra_slot = 3; // mm
 
 // Window is the empty area that makes the badge visible. To hold badge in
 // place the window should be *smaller* than the actual badge dimensions.
 // Cover left & right, and top & bottom by 'tolerance' mm.
 window_width = badge_width - 2*margin;
-window_height = badge_height - margin - slide_length;
+window_height = badge_height - margin - slide_length - extra_slot;
 // window_depth is assigned below.
 
 // Slot is the inner gap where the badge will slide into frame.
 // The slot should be *slightly* larger than the badge, with space on the top for it to slide out.
 // Add 1mm on left & right, and top & bottom.
 slot_width = badge_width + 2;
-slot_height = badge_height + slide_length + 2;
+slot_height = badge_height + slide_length + 1;
 slot_depth = badge_depth + 0.5;  // pretty tight. but should be enough.
 
 // Size of the two openings for inserting the badge
 opening_width = slot_width;
-opening_height = (slot_height - slide_length) / 2;
+opening_height = (slot_height - slide_length - extra_slot) / 2;
 opening_depth = tolerance + 0.2;
 
 // Outside is the external dimension of the entire frame.
@@ -103,17 +104,21 @@ difference() {
   // cut out the slot within the frame.
   cube(size = [slot_width,slot_height,slot_depth], center=true);
 
-  // cut out the lower opening for insertion
-  translate([0,-opening_height/2+slide_length/2,-(slot_depth/2+opening_depth/2-0.1)]) {
-    cube(size = [opening_width, opening_height, opening_depth], center=true);
-  }
+  translate([0, (slide_length+extra_slot)/2, 0]) {
 
-  // cut out the upper opening for insertion
-  translate([0,opening_height/2+slide_length/2,slot_depth/2+opening_depth/2-0.1]) {
-    cube(size = [opening_width, opening_height, opening_depth], center=true);
+    // cut out the lower opening for insertion
+    translate([0,-opening_height/2,-(slot_depth/2+opening_depth/2-0.1)]) {
+      cube(size = [opening_width, opening_height, opening_depth], center=true);
+    }
+
+    // cut out the upper opening for insertion
+    translate([0,opening_height/2,slot_depth/2+opening_depth/2-0.1]) {
+      cube(size = [opening_width, opening_height, opening_depth], center=true);
+    }
+
   }
   
-  translate([0,window_height/2+margin,-(slot_depth/2+opening_depth/2-0.1)]) {
-    ring_holes(8.5,1.5,opening_depth);
-  }
+//  translate([0,window_height/2+margin,-(slot_depth/2+opening_depth/2-0.1)]) {
+//    ring_holes(8.5,1.5,opening_depth);
+//  }
 }
