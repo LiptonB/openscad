@@ -88,9 +88,17 @@ module ring_holes(ring_radius, wire_radius, depth) {
 
 module ring_loop(opening_radius, tube_radius) {
   ring_radius = opening_radius + tube_radius;
-  rotate_extrude(convexity=10)
+  outer_radius = ring_radius + tube_radius;
+  
+  rotate_extrude(convexity=10, $fs=0.01)
     translate([ring_radius, 0, 0])
       circle(r=tube_radius, $fs=0.01);
+  translate([-ring_radius, 0, 0])
+    rotate([90,0,0])
+      cylinder(r1=tube_radius, r2=tube_radius*1.7, h=opening_radius, $fs=0.01);
+  translate([0, -ring_radius, 0])
+    rotate([0,-90,0])
+      cylinder(r1=tube_radius, r2=tube_radius*1.7, h=opening_radius, $fs=0.01);
 }
 
 // Logically, the badge holder consists of three intersecting shapes.
