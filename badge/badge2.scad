@@ -86,6 +86,13 @@ module ring_holes(ring_radius, wire_radius, depth) {
   translate([offset, hole_radius, 0]) cylinder(h=depth, r=hole_radius, center=true, $fs=0.01);
 }
 
+module ring_loop(opening_radius, tube_radius) {
+  ring_radius = opening_radius + tube_radius;
+  rotate_extrude(convexity=10)
+    translate([ring_radius, 0, 0])
+      circle(r=tube_radius, $fs=0.01);
+}
+
 // Logically, the badge holder consists of three intersecting shapes.
 // 1) The 'badgeframe' defines the volume of the entire frame.
 // 2) The window cylindercube is subtracted from the badgeframe shape
@@ -95,8 +102,12 @@ module ring_holes(ring_radius, wire_radius, depth) {
 
 scale=1.25;
 difference() {
-  // outside shape.
-  beveledcube(outside_width, outside_height, outside_depth);
+  union() {
+    // outside shape.
+    beveledcube(outside_width, outside_height, outside_depth);
+
+	translate([outside_width/2, outside_height/2, 0]) ring_loop(1.5, 1.3);
+  }
 
   // cut out the viewing window from the center.
   cube([window_width, window_height, window_depth], center=true);
