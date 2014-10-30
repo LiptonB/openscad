@@ -5,43 +5,25 @@ badge_depth = 2.5;  // mm. thickness of badge.
 
 // Shapeways model tolerance.
 // Stainless steel edges must be at least 1.5 mm thick.
-tolerance = 1.5; // mm.
+min_thickness = 1.5; // mm.
+border_thickness = 2; // mm.
 
-margin = 2; // mm
-slide_length = 0; // mm
-extra_slot = 3; // mm
-opening_overlap = -15; // mm
-
-// Window is the empty area that makes the badge visible. To hold badge in
-// place the window should be *smaller* than the actual badge dimensions.
-// Cover left & right, and top & bottom by 'tolerance' mm.
-window_width = badge_width - 2*margin;
-window_height = badge_height - margin - slide_length - extra_slot;
-// window_depth is assigned below.
+// Radius of rounded borders
+edge_radius = 0.5; // mm.
 
 // Slot is the inner gap where the badge will slide into frame.
 // The slot should be *slightly* larger than the badge, with space on the top for it to slide out.
 // Add a bit on left & right, and top & bottom.
 slot_width = badge_width + 0.5;
-slot_height = badge_height + slide_length + 0.5;
+slot_height = badge_height + 0.5;
 slot_depth = badge_depth + 0.5;  // pretty tight. but should be enough.
 
-// Size of the two openings for inserting the badge
-opening_width = slot_width;
-opening_height = (slot_height - slide_length - extra_slot + opening_overlap) / 2;
-opening_depth = tolerance + 0.2;
-
 // Outside is the external dimension of the entire frame.
-// The additional padding (.75) is for volume lost by the beveled edges.
-// Add tolerance on left & right, top & bottom.
-outside_width = slot_width + 2*tolerance + 0.75;
-outside_height = slot_height + 2*tolerance + 0.75;
-outside_depth = slot_depth + 2*tolerance;  // the bare minimum wall size.
-
-// Now that we have defined outside_depth, we can assign window_depth.
-// Make window_depth a little larger to guarantee a complete removal of frame
-// without aliasing due to floating point precision.
-window_depth = outside_depth + 0.1;
+// Add border_thickness on left & right, top & bottom.
+// Add min_thickness on front and back.
+outside_width = slot_width + 2*border_thickness;
+outside_height = slot_height + 2*border_thickness;
+outside_depth = slot_depth + 2*min_thickness;
 
 // Creates a "beveled cube" of dimensions width x height x depth with beveled
 // edges of radius depth/2. All dimensions are preserved, but volume is less
@@ -80,36 +62,79 @@ module cylindercube(width, height, depth) {
   }
 }
 
-module ring_holes(ring_radius, wire_radius, depth) {
-  offset = ring_radius * 0.6;
-  hole_radius = wire_radius * 1.1;
-  translate([-offset, hole_radius, 0]) cylinder(h=depth, r=hole_radius, center=true, $fs=0.01);
-  translate([offset, hole_radius, 0]) cylinder(h=depth, r=hole_radius, center=true, $fs=0.01);
+function gaussian(x, a, b, c, d) = a * exp(-(x-b)*(x-b)/(2*c*c)) + d;
+gaussian_points = [[-3.0, 0],
+ [-2.9, 0.014920786069067842],
+ [-2.8, 0.019841094744370288],
+ [-2.7, 0.026121409853918233],
+ [-2.6, 0.034047454734599344],
+ [-2.5, 0.04393693362340742],
+ [-2.4, 0.056134762834133725],
+ [-2.3, 0.07100535373963698],
+ [-2.2, 0.08892161745938634],
+ [-2.1, 0.11025052530448522],
+ [-2.0, 0.1353352832366127],
+ [-1.9, 0.1644744565771549],
+ [-1.8, 0.19789869908361465],
+ [-1.7, 0.23574607655586352],
+ [-1.6, 0.27803730045319414],
+ [-1.5, 0.32465246735834974],
+ [-1.4, 0.37531109885139957],
+ [-1.3, 0.42955735821073915],
+ [-1.2, 0.4867522559599717],
+ [-1.1, 0.5460744266397094],
+ [-1.0, 0.6065306597126334],
+ [-0.9, 0.6669768108584744],
+ [-0.8, 0.7261490370736909],
+ [-0.7, 0.7827045382418681],
+ [-0.6, 0.835270211411272],
+ [-0.5, 0.8824969025845955],
+ [-0.4, 0.9231163463866358],
+ [-0.3, 0.9559974818331],
+ [-0.2, 0.9801986733067553],
+ [-0.1, 0.9950124791926823],
+ [0.0, 1.0],
+ [0.1, 0.9950124791926823],
+ [0.2, 0.9801986733067553],
+ [0.3, 0.9559974818331],
+ [0.4, 0.9231163463866358],
+ [0.5, 0.8824969025845955],
+ [0.6, 0.835270211411272],
+ [0.7, 0.7827045382418681],
+ [0.8, 0.7261490370736909],
+ [0.9, 0.6669768108584744],
+ [1.0, 0.6065306597126334],
+ [1.1, 0.5460744266397094],
+ [1.2, 0.4867522559599717],
+ [1.3, 0.42955735821073915],
+ [1.4, 0.37531109885139957],
+ [1.5, 0.32465246735834974],
+ [1.6, 0.27803730045319414],
+ [1.7, 0.23574607655586352],
+ [1.8, 0.19789869908361465],
+ [1.9, 0.1644744565771549],
+ [2.0, 0.1353352832366127],
+ [2.1, 0.11025052530448522],
+ [2.2, 0.08892161745938634],
+ [2.3, 0.07100535373963698],
+ [2.4, 0.056134762834133725],
+ [2.5, 0.04393693362340742],
+ [2.6, 0.034047454734599344],
+ [2.7, 0.026121409853918233],
+ [2.8, 0.019841094744370288],
+ [2.9, 0.014920786069067842],
+ [3.0, 0]];
+
+module gaussian_prism(width, height, depth) {
+  scale([width/6, height, 1]) {
+    linear_extrude(height=depth) {
+      polygon(gaussian_points);
+    }
+  }
 }
 
-module ring_loop(opening_radius, tube_radius) {
-  ring_radius = opening_radius + tube_radius;
-  outer_radius = ring_radius + tube_radius;
-  cone_overlap = opening_radius/2;
-
-  outer_horiz_offset = sqrt(outer_radius*outer_radius - cone_overlap*cone_overlap);
-  cone_top_width = (outer_horiz_offset - sqrt(opening_radius*opening_radius - cone_overlap*cone_overlap))/2;
-  center_horiz_offset = (outer_radius - outer_horiz_offset) / 2;
-
-  echo(outer_radius);
-  echo(opening_radius);
-  echo(cone_top_width);
-  
-  rotate_extrude(convexity=10, $fs=0.01)
-    translate([ring_radius, 0, 0])
-      circle(r=tube_radius, $fs=0.01);
-  *translate([-ring_radius+center_horiz_offset, cone_overlap, 0])
-    rotate([90,0,0])
-      cylinder(r1=cone_top_width, r2=cone_top_width*1.6, h=opening_radius, $fs=0.01);
-  *translate([cone_overlap, -ring_radius+center_horiz_offset, 0])
-    rotate([0,-90,0])
-      cylinder(r1=cone_top_width, r2=cone_top_width*1.6, h=opening_radius, $fs=0.01);
-}
+ translate([outside_width/2, 0, 0]) rotate([0, 0, 180]) gaussian_prism(outside_width, 10, outside_depth);
+cube([outside_width, outside_height, outside_depth]);
 
 // Logically, the badge holder consists of three intersecting shapes.
 // 1) The 'badgeframe' defines the volume of the entire frame.
@@ -118,8 +143,7 @@ module ring_loop(opening_radius, tube_radius) {
 // 3) The slot cube is subtracted from within the badgeframe to
 //    create a space for the badge to fit.
 
-scale=1.25;
-difference() {
+*difference() {
   union() {
     // outside shape.
     beveledcube(outside_width, outside_height, outside_depth);
