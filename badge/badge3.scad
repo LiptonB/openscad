@@ -12,6 +12,7 @@ border_thickness = 2; // mm.
 edge_radius = 0.5; // mm.
 
 hole_height = 5; // mm.
+bend_height = 5; // mm. Amount the top of the badge can be lowered by bending.
 
 // Slot is the inner gap where the badge will slide into frame.
 // The slot should be *slightly* larger than the badge, with space on the top for it to slide out.
@@ -135,6 +136,12 @@ module gaussian_prism(width, height, depth) {
   }
 }
 
+module triangular_prism(width, height, depth) {
+  linear_extrude(height=depth) {
+    polygon([[0,0], [width, 0], [0, height]]);
+  }
+}
+
 minkowski() {
   union() {
 	difference() {
@@ -145,6 +152,14 @@ minkowski() {
   	  cube([outside_width, outside_height, outside_depth]);
       translate([border_thickness, border_thickness, -.1]) cube([slot_width, slot_height, outside_depth+.2]);
     }
+    translate([border_thickness, border_thickness, 0])
+      triangular_prism(bend_height, bend_height, min_thickness);
+    translate([outside_width-border_thickness, outside_height-border_thickness, 0])
+      rotate([0, 0, 180]) triangular_prism(bend_height, bend_height, min_thickness);
+    translate([border_thickness, outside_height-border_thickness, outside_depth-min_thickness])
+      rotate([0, 0, -90]) triangular_prism(bend_height, bend_height, min_thickness);
+    translate([outside_width-border_thickness, border_thickness, outside_depth-min_thickness])
+      rotate([0, 0, 90]) triangular_prism(bend_height, bend_height, min_thickness);
   }
   sphere(edge_radius);
 }
