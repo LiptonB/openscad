@@ -11,6 +11,8 @@ border_thickness = 2; // mm.
 // Radius of rounded borders
 edge_radius = 0.5; // mm.
 
+hole_height = 5; // mm.
+
 // Slot is the inner gap where the badge will slide into frame.
 // The slot should be *slightly* larger than the badge, with space on the top for it to slide out.
 // Add a bit on left & right, and top & bottom.
@@ -133,41 +135,16 @@ module gaussian_prism(width, height, depth) {
   }
 }
 
- translate([outside_width/2, 0, 0]) rotate([0, 0, 180]) gaussian_prism(outside_width, 10, outside_depth);
-cube([outside_width, outside_height, outside_depth]);
-
-// Logically, the badge holder consists of three intersecting shapes.
-// 1) The 'badgeframe' defines the volume of the entire frame.
-// 2) The window cylindercube is subtracted from the badgeframe shape
-//    to create a portal to view the badge.
-// 3) The slot cube is subtracted from within the badgeframe to
-//    create a space for the badge to fit.
-
-*difference() {
+minkowski() {
   union() {
-    // outside shape.
-    beveledcube(outside_width, outside_height, outside_depth);
-
-	translate([outside_width/2-tolerance/2, outside_height/2-tolerance/2, 0]) ring_loop(2.5, tolerance);
-  }
-
-  // cut out the viewing window from the center.
-  cube([window_width, window_height, window_depth], center=true);
-
-  // cut out the slot within the frame.
-  cube(size = [slot_width,slot_height,slot_depth], center=true);
-
-  translate([0, (slide_length+extra_slot)/2, 0]) {
-
-    // cut out the lower opening for insertion
-    translate([0,-opening_height/2+opening_overlap/2,-(slot_depth/2+opening_depth/2-0.1)]) {
-      cube(size = [opening_width, opening_height, opening_depth], center=true);
+	difference() {
+	  translate([outside_width/2, 0, 0]) rotate([0, 0, 180]) gaussian_prism(outside_width, hole_height+border_thickness, outside_depth);
+      translate([outside_width/2, border_thickness, -.1]) rotate([0, 0, 180]) gaussian_prism(outside_width, hole_height+border_thickness, outside_depth+.2);
     }
-
-    // cut out the upper opening for insertion
-    translate([0,opening_height/2-opening_overlap/2,slot_depth/2+opening_depth/2-0.1]) {
-      cube(size = [opening_width, opening_height, opening_depth], center=true);
+    difference() {
+  	  cube([outside_width, outside_height, outside_depth]);
+      translate([border_thickness, border_thickness, -.1]) cube([slot_width, slot_height, outside_depth+.2]);
     }
-
   }
+  sphere(edge_radius);
 }
