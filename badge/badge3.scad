@@ -1,6 +1,6 @@
 // Badge dimensions.
-badge_width = 55;  // mm.
-badge_height = 86;  // mm.
+badge_width = 54;  // mm.
+badge_height = 85.6;  // mm.
 badge_depth = 2.5;  // mm. thickness of badge.
 
 // Shapeways model tolerance.
@@ -10,22 +10,26 @@ border_thickness = 2; // mm.
 
 // Radius of rounded borders
 edge_radius = 0.5; // mm.
+corner_radius = 3; // mm.
+inner_corner_radius = 1.5; // mm.
 
 hole_height = 5; // mm.
 bend_height = 5; // mm. Amount the top of the badge can be lowered by bending.
 
+// Slot and outside dimensions (before rounding!)
+
 // Slot is the inner gap where the badge will slide into frame.
 // The slot should be *slightly* larger than the badge, with space on the top for it to slide out.
 // Add a bit on left & right, and top & bottom.
-slot_width = badge_width + 0.5;
-slot_height = badge_height + 0.5;
+slot_width = badge_width * 1.1 + 2*edge_radius;
+slot_height = badge_height * 1.1 + 2*edge_radius;
 slot_depth = badge_depth + 0.5;  // pretty tight. but should be enough.
 
 // Outside is the external dimension of the entire frame.
 // Add border_thickness on left & right, top & bottom.
 // Add min_thickness on front and back.
-outside_width = slot_width + 2*border_thickness;
-outside_height = slot_height + 2*border_thickness;
+outside_width = slot_width + 2*border_thickness - 2*edge_radius;
+outside_height = slot_height + 2*border_thickness - 2*edge_radius;
 outside_depth = slot_depth + 2*min_thickness;
 
 // Creates a "beveled cube" of dimensions width x height x depth with beveled
@@ -50,18 +54,17 @@ module beveledcube(width, height, depth) {
 // edges of radius depth/2 only on the width and height dimensions. All
 // dimensions are preserved, but volume is less due to beveled edges. The
 // entire shape is centered at the origin: 0, 0, 0.
-module cylindercube(width, height, depth) {
-  r = depth/2;
+module cylindercube(width, height, depth, r) {
   // Set local w and h so that given width and height are preserved.
-  w = width - depth;  // radius will be added twice on left and right.
-  h = height - depth;  // radius will be added twice on top and bottom.
+  w = width - 2*r;  // radius will be added twice on left and right.
+  h = height - 2*r;  // radius will be added twice on top and bottom.
 
   // creates a convex hull around these four spheres.
   hull() {
-    translate([-w/2, -h/2, 0]) cylinder(h=depth, r=r, center=true, $fs=0.01);
-    translate([ w/2, -h/2, 0]) cylinder(h=depth, r=r, center=true, $fs=0.01);
-    translate([-w/2,  h/2, 0]) cylinder(h=depth, r=r, center=true, $fs=0.01);
-    translate([ w/2,  h/2, 0]) cylinder(h=depth, r=r, center=true, $fs=0.01);
+    translate([r,   r,   0]) cylinder(h=depth, r=r, $fs=0.01);
+    translate([w+r, r,   0]) cylinder(h=depth, r=r, $fs=0.01);
+    translate([r,   h+r, 0]) cylinder(h=depth, r=r, $fs=0.01);
+    translate([w+r, h+r, 0]) cylinder(h=depth, r=r, $fs=0.01);
   }
 }
 
@@ -145,21 +148,21 @@ module triangular_prism(width, height, depth) {
 minkowski() {
   union() {
 	difference() {
-	  translate([outside_width/2, 0, 0]) rotate([0, 0, 180]) gaussian_prism(outside_width, hole_height+border_thickness, outside_depth);
+	  translate([outside_width/2, 0, 0]) rotate([0, 0, 180]) gaussian_prism(outside_width-2*corner_radius, hole_height+border_thickness, outside_depth);
       translate([outside_width/2, border_thickness, -.1]) rotate([0, 0, 180]) gaussian_prism(outside_width, hole_height+border_thickness, outside_depth+.2);
     }
     difference() {
-  	  cube([outside_width, outside_height, outside_depth]);
-      translate([border_thickness, border_thickness, -.1]) cube([slot_width, slot_height, outside_depth+.2]);
+  	  cylindercube(outside_width, outside_height, outside_depth, corner_radius);
+      translate([border_thickness-edge_radius, border_thickness-edge_radius, -.1]) cylindercube(slot_width, slot_height, outside_depth+.2, inner_corner_radius);
     }
-    translate([border_thickness, border_thickness, 0])
+    translate([border_thickness-edge_radius, border_thickness-edge_radius, 0])
       triangular_prism(bend_height, bend_height, min_thickness);
-    translate([outside_width-border_thickness, outside_height-border_thickness, 0])
+    translate([outside_width-border_thickness+edge_radius, outside_height-border_thickness+edge_radius, 0])
       rotate([0, 0, 180]) triangular_prism(bend_height, bend_height, min_thickness);
-    translate([border_thickness, outside_height-border_thickness, outside_depth-min_thickness])
+    translate([border_thickness-edge_radius, outside_height-border_thickness+edge_radius, outside_depth-min_thickness])
       rotate([0, 0, -90]) triangular_prism(bend_height, bend_height, min_thickness);
-    translate([outside_width-border_thickness, border_thickness, outside_depth-min_thickness])
+    translate([outside_width-border_thickness+edge_radius, border_thickness-edge_radius, outside_depth-min_thickness])
       rotate([0, 0, 90]) triangular_prism(bend_height, bend_height, min_thickness);
   }
-  sphere(edge_radius);
+  sphere(edge_radius, $fs=0.5);
 }

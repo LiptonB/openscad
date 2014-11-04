@@ -1,6 +1,6 @@
 // Badge dimensions.
-badge_width = 55;  // mm.
-badge_height = 86;  // mm.
+badge_width = 54;  // mm.
+badge_height = 85.6;  // mm.
 badge_depth = 2.5;  // mm. thickness of badge.
 
 // Shapeways model tolerance.
@@ -10,7 +10,7 @@ tolerance = 1.5; // mm.
 margin = 2; // mm
 slide_length = 0; // mm
 extra_slot = 3; // mm
-opening_overlap = -15; // mm
+opening_overlap = -5; // mm
 
 // Window is the empty area that makes the badge visible. To hold badge in
 // place the window should be *smaller* than the actual badge dimensions.
@@ -95,10 +95,6 @@ module ring_loop(opening_radius, tube_radius) {
   outer_horiz_offset = sqrt(outer_radius*outer_radius - cone_overlap*cone_overlap);
   cone_top_width = (outer_horiz_offset - sqrt(opening_radius*opening_radius - cone_overlap*cone_overlap))/2;
   center_horiz_offset = (outer_radius - outer_horiz_offset) / 2;
-
-  echo(outer_radius);
-  echo(opening_radius);
-  echo(cone_top_width);
   
   rotate_extrude(convexity=10, $fs=0.01)
     translate([ring_radius, 0, 0])
