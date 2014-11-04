@@ -149,8 +149,8 @@ module triangular_prism(width, height, depth) {
 minkowski() {
   union() {
 	difference() {
-	  translate([outside_width/2, 0, 0]) rotate([0, 0, 180]) gaussian_prism(outside_width-2*corner_radius, hole_height+border_thickness, outside_depth);
-      translate([outside_width/2, border_thickness, -.1]) rotate([0, 0, 180]) gaussian_prism(outside_width, hole_height+border_thickness, outside_depth+.2);
+	  translate([outside_width/2, outside_height, 0]) gaussian_prism(outside_width-2*corner_radius, hole_height+border_thickness, outside_depth);
+      translate([outside_width/2, outside_height-border_thickness, -.1]) gaussian_prism(outside_width, hole_height+border_thickness, outside_depth+.2);
     }
     difference() {
   	  cylindercube(outside_width, outside_height, outside_depth, corner_radius);
