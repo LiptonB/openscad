@@ -164,5 +164,5 @@ minkowski() {
     translate([outside_width-border_thickness+edge_radius, border_thickness-edge_radius, outside_depth-min_thickness])
       rotate([0, 0, 90]) triangular_prism(bend_height, bend_height, min_thickness);
   }
-  sphere(edge_radius, $fs=0.5);
+  sphere(edge_radius, $fs=0.2);
 }
